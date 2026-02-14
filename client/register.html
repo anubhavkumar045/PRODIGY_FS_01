@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Auth System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="auth-card">
+      <h1>Create Account</h1>
+      <p class="subtitle">Join us today</p>
+      
+      <div id="message" class="message"></div>
+      
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Enter your name" required>
+          <span class="error-text" id="nameError"></span>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+          <span class="error-text" id="emailError"></span>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+          <span class="error-text" id="passwordError"></span>
+        </div>
+        
+        <button type="submit" class="btn" id="submitBtn">
+          <span class="btn-text">Register</span>
+          <span class="btn-loader"></span>
+        </button>
+      </form>
+      
+      <p class="switch-auth">
+        Already have an account? <a href="login.html">Login here</a>
+      </p>
+    </div>
+  </div>
+  
+  <script src="script.js"></script>
+  <script>
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageDiv = document.getElementById('message');
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+      
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!validateForm(name, email, password)) {
+        return;
+      }
+      
+      setLoading(true);
+      
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          showMessage('Registration successful! Redirecting to login...', 'success');
+          setTimeout(() => window.location.href = 'login.html', 2000);
+        } else {
+          showMessage(data.message, 'error');
+        }
+      } catch (error) {
+        showMessage('Unable to connect to server', 'error');
+      } finally {
+        setLoading(false);
+      }
+    });
+    
+    function validateForm(name, email, password) {
+      let isValid = true;
+      
+      if (name.length < 2) {
+        showFieldError('nameError', 'Name must be at least 2 characters');
+        isValid = false;
+      }
+      
+      if (!isValidEmail(email)) {
+        showFieldError('emailError', 'Please enter a valid email');
+        isValid = false;
+      }
+      
+      if (password.length < 6) {
+        showFieldError('passwordError', 'Password must be at least 6 characters');
+        isValid = false;
+      }
+      
+      return isValid;
+    }
+    
+    function isValidEmail(email) {
+      return /^\S+@\S+\.\S+$/.test(email);
+    }
+    
+    function showFieldError(fieldId, message) {
+      const errorElement = document.getElementById(fieldId);
+      errorElement.textContent = message;
+      errorElement.parentElement.querySelector('input').classList.add('input-error');
+    }
+    
+    function clearErrors() {
+      document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+      document.querySelectorAll('input').forEach(el => el.classList.remove('input-error'));
+      messageDiv.textContent = '';
+      messageDiv.className = 'message';
+    }
+    
+    function showMessage(message, type) {
+      messageDiv.textContent = message;
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.display = 'block';
+      
+      if (type === 'error') {
+        setTimeout(() => messageDiv.style.display = 'none', 5000);
+      }
+    }
+    
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      submitBtn.classList.toggle('loading', loading);
+    }
+  </script>
+</body>
+</html>

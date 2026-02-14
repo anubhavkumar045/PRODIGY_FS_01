@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Auth System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <nav class="navbar">
+      <div class="nav-content">
+        <h2 class="nav-brand">Auth System</h2>
+        <button class="btn btn-logout" id="logoutBtn">Logout</button>
+      </div>
+    </nav>
+    
+    <div class="dashboard-content">
+      <div class="welcome-card">
+        <h1>Welcome, <span id="userName">User</span>!</h1>
+        <p class="welcome-text">You have successfully logged in to your dashboard.</p>
+        
+        <div class="user-info">
+          <div class="info-item">
+            <span class="info-label">Name:</span>
+            <span class="info-value" id="displayName">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value" id="displayEmail">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Status:</span>
+            <span class="info-value status-active">Active</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Secure Authentication</h3>
+          <p>Your account is protected with JWT tokens and bcrypt password hashing.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Fast & Reliable</h3>
+          <p>Built with modern technologies for optimal performance.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Responsive Design</h3>
+          <p>Works seamlessly across all devices and screen sizes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="script.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/auth/user', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('userName').textContent = data.user.name;
+          document.getElementById('displayName').textContent = data.user.name;
+          document.getElementById('displayEmail').textContent = data.user.email;
+        } else {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userName');
+          window.location.href = 'login.html';
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        window.location.href = 'login.html';
+      }
+    });
+    
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userName');
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>
